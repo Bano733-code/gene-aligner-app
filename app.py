@@ -1,94 +1,60 @@
 import streamlit as st
-from Bio import SeqIO
 import numpy as np
-import pandas as pd
+from Bio import pairwise2
+from Bio.Seq import Seq
+from Bio import SeqIO
 import io
 
-st.set_page_config(page_title="🧬 Gene Sequence Aligner", layout="wide")
+st.set_page_config(page_title="Gene Sequence Aligner", layout="centered")
 
-# Alignment functions
-def dot_matrix(seq1, seq2, window=1, threshold=1):
-    m, n = len(seq1), len(seq2)
-    matrix = np.zeros((m, n), dtype=int)
-    for i in range(m - window + 1):
-        for j in range(n - window + 1):
-            if seq1[i:i+window] == seq2[j:j+window]:
-                matrix[i+window-1][j+window-1] = 1
-    return matrix
+st.title("🧬 Gene Sequence Aligner")
+st.markdown("Align DNA/RNA sequences using different methods.")
 
-def needleman_wunsch(seq1, seq2, match=1, mismatch=-1, gap=-2):
-    m, n = len(seq1)+1, len(seq2)+1
-    score = np.zeros((m, n), dtype=int)
-    for i in range(m): score[i][0] = i * gap
-    for j in range(n): score[0][j] = j * gap
+# Choose input mode
+input_mode = st.radio("Choose Input Method", ["📁 Upload FASTA Files", "✍️ Paste Sequences"])
 
-    for i in range(1, m):
-        for j in range(1, n):
-            diag = score[i-1][j-1] + (match if seq1[i-1] == seq2[j-1] else mismatch)
-            delete = score[i-1][j] + gap
-            insert = score[i][j-1] + gap
-            score[i][j] = max(diag, delete, insert)
-    return score
-
-def smith_waterman(seq1, seq2, match=1, mismatch=-1, gap=-2):
-    m, n = len(seq1)+1, len(seq2)+1
-    score = np.zeros((m, n), dtype=int)
-    max_score = 0
-    max_pos = (0, 0)
-
-    for i in range(1, m):
-        for j in range(1, n):
-            diag = score[i-1][j-1] + (match if seq1[i-1] == seq2[j-1] else mismatch)
-            delete = score[i-1][j] + gap
-            insert = score[i][j-1] + gap
-            score[i][j] = max(0, diag, delete, insert)
-            if score[i][j] > max_score:
-                max_score = score[i][j]
-                max_pos = (i, j)
-    return score
-
-# FASTA Parser
-def read_fasta(uploaded_file):
-    fasta_text = uploaded_file.read().decode("utf-8")
-    fasta_io = io.StringIO(fasta_text)
-    for record in SeqIO.parse(fasta_io, "fasta"):
+def read_fasta(file):
+    try:
+        record = next(SeqIO.parse(file, "fasta"))
         return str(record.seq)
+    except Exception as e:
+        st.error(f"Error reading FASTA file: {e}")
+        return None
 
-# App UI
-st.title("🧬 Gene Sequence Aligner App")
-st.markdown("Upload two FASTA files and choose alignment method:")
+# Get sequences
+seq1, seq2 = None, None
 
-col1, col2 = st.columns(2)
-with col1:
-    fasta1 = st.file_uploader("Upload First FASTA File", type=["fasta"])
-with col2:
-    fasta2 = st.file_uploader("Upload Second FASTA File", type=["fasta"])
+if input_mode == "📁 Upload FASTA Files":
+    fasta1 = st.file_uploader("Upload Sequence 1 (FASTA)", type=["fasta", "fa"])
+    fasta2 = st.file_uploader("Upload Sequence 2 (FASTA)", type=["fasta", "fa"])
 
-if fasta1 and fasta2:
-    seq1 = read_fasta(fasta1)
-    seq2 = read_fasta(fasta2)
+    if fasta1 and fasta2:
+        seq1 = read_fasta(fasta1)
+        seq2 = read_fasta(fasta2)
 
-    st.success("✅ FASTA files loaded successfully!")
-    method = st.selectbox("Choose Alignment Method", ["Dot Matrix", "Needleman-Wunsch", "Smith-Waterman"])
+elif input_mode == "✍️ Paste Sequences":
+    seq1 = st.text_area("Paste Sequence 1", height=100)
+    seq2 = st.text_area("Paste Sequence 2", height=100)
 
-    if st.button("🔍 Run Alignment"):
-        st.subheader("🧪 Alignment Results")
+# Choose alignment method
+if seq1 and seq2:
+    method = st.selectbox("Choose Alignment Method", ["Needleman-Wunsch", "Smith-Waterman"])
 
-        if method == "Dot Matrix":
-            matrix = dot_matrix(seq1, seq2)
-        elif method == "Needleman-Wunsch":
-            matrix = needleman_wunsch(seq1, seq2)
-        elif method == "Smith-Waterman":
-            matrix = smith_waterman(seq1, seq2)
+    if st.button("🔬 Align Sequences"):
+        seq1 = seq1.replace("\n", "").strip().upper()
+        seq2 = seq2.replace("\n", "").strip().upper()
 
-        df = pd.DataFrame(matrix)
-        st.write("🔢 Scoring Matrix:")
-        st.dataframe(df.style.background_gradient(cmap='YlGnBu', axis=None))
+        if method == "Needleman-Wunsch":
+            alignments = pairwise2.align.globalxx(seq1, seq2)
+        else:
+            alignments = pairwise2.align.localxx(seq1, seq2)
 
-        st.success("✅ Alignment completed.")
-
+        top = alignments[0]
+        st.subheader("✅ Best Alignment")
+        st.code(f"{top.seqA}\n{top.seqB}\nScore: {top.score}")
 else:
-    st.info("📂 Please upload both FASTA files to continue.")
+    st.info("👆 Upload or paste two sequences to begin.")
 
 st.markdown("---")
-st.caption("Built with ❤️ for bioinformatics students")
+st.markdown("🧪 Built with Biopython + Streamlit")
+
