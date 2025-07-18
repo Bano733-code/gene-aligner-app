@@ -1,60 +1,77 @@
 import streamlit as st
+from Bio import pairwise2, SeqIO
+from Bio.pairwise2 import format_alignment
 import numpy as np
-from Bio import pairwise2
-from Bio.Seq import Seq
-from Bio import SeqIO
-import io
+import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Gene Sequence Aligner", layout="centered")
+st.set_page_config(page_title="🧬 Gene Sequence Aligner", layout="wide")
+st.title("🧬 Gene Sequence Aligner App")
 
-st.title("🧬 Gene Sequence Aligner")
-st.markdown("Align DNA/RNA sequences using different methods.")
+# Input Option
+option = st.radio("Choose Input Method", ["Upload FASTA", "Paste Sequences"])
 
-# Choose input mode
-input_mode = st.radio("Choose Input Method", ["📁 Upload FASTA Files", "✍️ Paste Sequences"])
-
-def read_fasta(file):
-    try:
-        record = next(SeqIO.parse(file, "fasta"))
-        return str(record.seq)
-    except Exception as e:
-        st.error(f"Error reading FASTA file: {e}")
-        return None
-
-# Get sequences
-seq1, seq2 = None, None
-
-if input_mode == "📁 Upload FASTA Files":
-    fasta1 = st.file_uploader("Upload Sequence 1 (FASTA)", type=["fasta", "fa"])
-    fasta2 = st.file_uploader("Upload Sequence 2 (FASTA)", type=["fasta", "fa"])
-
-    if fasta1 and fasta2:
-        seq1 = read_fasta(fasta1)
-        seq2 = read_fasta(fasta2)
-
-elif input_mode == "✍️ Paste Sequences":
+# Input Sequences
+if option == "Upload FASTA":
+    file1 = st.file_uploader("Upload Sequence 1 (FASTA)", type=["fasta", "fa"])
+    file2 = st.file_uploader("Upload Sequence 2 (FASTA)", type=["fasta", "fa"])
+    if file1 and file2:
+        seq1 = str(SeqIO.read(file1, "fasta").seq)
+        seq2 = str(SeqIO.read(file2, "fasta").seq)
+    else:
+        seq1 = seq2 = ""
+else:
     seq1 = st.text_area("Paste Sequence 1", height=100)
     seq2 = st.text_area("Paste Sequence 2", height=100)
 
-# Choose alignment method
-if seq1 and seq2:
-    method = st.selectbox("Choose Alignment Method", ["Needleman-Wunsch", "Smith-Waterman"])
+# Alignment Method
+method = st.selectbox("Select Alignment Method", ["Needleman-Wunsch", "Smith-Waterman", "Dot Matrix", "Word Method"])
 
-    if st.button("🔬 Align Sequences"):
-        seq1 = seq1.replace("\n", "").strip().upper()
-        seq2 = seq2.replace("\n", "").strip().upper()
+# Align Button
+if st.button("🔍 Run Alignment") and seq1 and seq2:
+    if method == "Needleman-Wunsch":
+        alignments = pairwise2.align.globalxx(seq1, seq2)
+        st.code(format_alignment(*alignments[0]), language="text")
 
-        if method == "Needleman-Wunsch":
-            alignments = pairwise2.align.globalxx(seq1, seq2)
-        else:
-            alignments = pairwise2.align.localxx(seq1, seq2)
+    elif method == "Smith-Waterman":
+        alignments = pairwise2.align.localxx(seq1, seq2)
+        st.code(format_alignment(*alignments[0]), language="text")
 
-        top = alignments[0]
-        st.subheader("✅ Best Alignment")
-        st.code(f"{top.seqA}\n{top.seqB}\nScore: {top.score}")
-else:
-    st.info("👆 Upload or paste two sequences to begin.")
+    elif method == "Word Method":
+        def word_match(s1, s2, k=3):
+            words1 = set(s1[i:i+k] for i in range(len(s1)-k+1))
+            words2 = set(s2[i:i+k] for i in range(len(s2)-k+1))
+            return words1 & words2
+        matches = word_match(seq1, seq2)
+        st.success(f"Matched {len(matches)} common k-mers")
+        st.write(matches)
 
-st.markdown("---")
-st.markdown("🧪 Built with Biopython + Streamlit")
+    elif method == "Dot Matrix":
+        def dot_matrix(s1, s2):
+            dot = np.zeros((len(s1), len(s2)))
+            for i in range(len(s1)):
+                for j in range(len(s2)):
+                    if s1[i] == s2[j]:
+                        dot[i][j] = 1
+            return dot
 
+        matrix = dot_matrix(seq1, seq2)
+        fig, ax = plt.subplots()
+        ax.imshow(matrix, cmap="Greys", interpolation="none")
+        ax.set_xlabel("Sequence 2")
+        ax.set_ylabel("Sequence 1")
+        st.pyplot(fig)
+
+# Chatbot Assistant
+with st.expander("💬 Ask GeneBot for Help"):
+    user_q = st.text_input("Ask a question:")
+    if user_q:
+        import openai
+        openai.api_key = st.secrets.get("OPENAI_API_KEY", "sk-...")
+        res = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful tutor for gene sequence alignment."},
+                {"role": "user", "content": user_q}
+            ]
+        )
+        st.markdown("**Answer:** " + res["choices"][0]["message"]["content"])
