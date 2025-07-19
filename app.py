@@ -67,11 +67,16 @@ with st.expander("💬 Ask GeneBot for Help"):
     if user_q:
         import openai
         openai.api_key = st.secrets.get("OPENAI_API_KEY", "sk-...")
-        res = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful tutor for gene sequence alignment."},
-                {"role": "user", "content": user_q}
-            ]
-        )
-        st.markdown("**Answer:** " + res["choices"][0]["message"]["content"])
+        from openai import OpenAI
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+response = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are a helpful tutor for gene sequence alignment."},
+        {"role": "user", "content": user_q}
+    ]
+)
+
+st.markdown("**Answer:** " + response.choices[0].message.content)
