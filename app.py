@@ -1,30 +1,23 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from Bio import pairwise2
-from Bio.Seq import Seq
-from Bio import SeqIO
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from huggingface_hub import login
+import torch
 
-# Load HuggingFace model
+# -----------------------------
+# Chatbot Loader (Lightweight)
+# -----------------------------
 @st.cache_resource
 def load_chatbot():
-    login(token=st.secrets["HF_TOKEN"])
-    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
-    model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
+    tokenizer = AutoTokenizer.from_pretrained("tiiuae/falcon-rw-1b")
+    model = AutoModelForCausalLM.from_pretrained("tiiuae/falcon-rw-1b")
     return tokenizer, model
 
 tokenizer, model = load_chatbot()
 
-def chatbot_response(prompt):
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=100)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-# Dot Matrix Method
-def dot_matrix(seq1, seq2, window=1):
+# -----------------------------
+# Dot Matrix Alignment
+# -----------------------------
+def dot_matrix(seq1, seq2, window=1, threshold=1):
     matrix = np.zeros((len(seq1), len(seq2)))
     for i in range(len(seq1) - window + 1):
         for j in range(len(seq2) - window + 1):
@@ -32,77 +25,102 @@ def dot_matrix(seq1, seq2, window=1):
                 matrix[i][j] = 1
     return matrix
 
-# Word Method (k-mer match)
-def word_method(seq1, seq2, k=3):
+# -----------------------------
+# Needleman-Wunsch Alignment
+# -----------------------------
+def needleman_wunsch(seq1, seq2, match=1, mismatch=-1, gap=-2):
+    m, n = len(seq1), len(seq2)
+    score = np.zeros((m+1, n+1))
+
+    for i in range(m+1):
+        score[i][0] = i * gap
+    for j in range(n+1):
+        score[0][j] = j * gap
+
+    for i in range(1, m+1):
+        for j in range(1, n+1):
+            diag = score[i-1][j-1] + (match if seq1[i-1] == seq2[j-1] else mismatch)
+            delete = score[i-1][j] + gap
+            insert = score[i][j-1] + gap
+            score[i][j] = max(diag, delete, insert)
+
+    return score
+
+# -----------------------------
+# Smith-Waterman Alignment
+# -----------------------------
+def smith_waterman(seq1, seq2, match=1, mismatch=-1, gap=-2):
+    m, n = len(seq1), len(seq2)
+    score = np.zeros((m+1, n+1))
+
+    max_score = 0
+    for i in range(1, m+1):
+        for j in range(1, n+1):
+            diag = score[i-1][j-1] + (match if seq1[i-1] == seq2[j-1] else mismatch)
+            delete = score[i-1][j] + gap
+            insert = score[i][j-1] + gap
+            score[i][j] = max(0, diag, delete, insert)
+            max_score = max(max_score, score[i][j])
+    return score
+
+# -----------------------------
+# Word Method (Naive)
+# -----------------------------
+def word_method(seq1, seq2, word_size=3):
     matches = []
-    for i in range(len(seq1) - k + 1):
-        kmer = seq1[i:i+k]
-        for j in range(len(seq2) - k + 1):
-            if kmer == seq2[j:j+k]:
-                matches.append((i, j, kmer))
+    for i in range(len(seq1) - word_size + 1):
+        word = seq1[i:i+word_size]
+        for j in range(len(seq2) - word_size + 1):
+            if word == seq2[j:j+word_size]:
+                matches.append((i, j))
     return matches
 
-st.title("🧬 Gene Sequence Aligner App + 🤖 Chatbot")
+# -----------------------------
+# Chatbot Function
+# -----------------------------
+def chatbot_reply(prompt):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model.generate(**inputs, max_new_tokens=100)
+    reply = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return reply
 
-# File upload
-st.sidebar.header("Upload FASTA files")
-file1 = st.sidebar.file_uploader("Sequence 1 (FASTA)", type=["fasta"])
-file2 = st.sidebar.file_uploader("Sequence 2 (FASTA)", type=["fasta"])
+# -----------------------------
+# Streamlit UI
+# -----------------------------
+st.set_page_config(page_title="🧬 Gene Sequence Aligner App", layout="centered")
+st.title("🧬 Gene Sequence Aligner App")
+st.write("Paste two DNA/RNA sequences and choose an alignment method.")
 
-# Text input fallback
-st.sidebar.markdown("Or paste sequences manually:")
-seq1_text = st.sidebar.text_area("Paste Sequence 1")
-seq2_text = st.sidebar.text_area("Paste Sequence 2")
+seq1 = st.text_area("🔬 Paste Sequence 1", height=100)
+seq2 = st.text_area("🧪 Paste Sequence 2", height=100)
+method = st.selectbox("🛠️ Choose Alignment Method", ["Dot Matrix", "Needleman-Wunsch", "Smith-Waterman", "Word Method"])
 
-# Alignment method
-method = st.selectbox("Choose alignment method", [
-    "Dot Matrix",
-    "Needleman-Wunsch",
-    "Smith-Waterman",
-    "Word Method"
-])
-
-# Load sequences
-def load_sequence(f, fallback):
-    if f:
-        for record in SeqIO.parse(f, "fasta"):
-            return str(record.seq)
-    return fallback.strip()
-
-seq1 = load_sequence(file1, seq1_text)
-seq2 = load_sequence(file2, seq2_text)
-
-if st.button("Align Sequences"):
+if st.button("🔍 Align Sequences"):
     if not seq1 or not seq2:
-        st.warning("Please provide both sequences.")
+        st.warning("Please paste both sequences!")
     else:
+        st.subheader("🧾 Result:")
         if method == "Dot Matrix":
             matrix = dot_matrix(seq1, seq2)
-            fig, ax = plt.subplots(figsize=(8,6))
-            ax.imshow(matrix, cmap="gray", interpolation="nearest")
-            ax.set_title("Dot Matrix Alignment")
-            st.pyplot(fig)
-
+            st.write(matrix)
         elif method == "Needleman-Wunsch":
-            alignments = pairwise2.align.globalxx(seq1, seq2)
-            st.code(alignments[0].format())
-
+            score = needleman_wunsch(seq1, seq2)
+            st.write(score)
         elif method == "Smith-Waterman":
-            alignments = pairwise2.align.localxx(seq1, seq2)
-            st.code(alignments[0].format())
-
+            score = smith_waterman(seq1, seq2)
+            st.write(score)
         elif method == "Word Method":
             matches = word_method(seq1, seq2)
-            df = pd.DataFrame(matches, columns=["Seq1_Pos", "Seq2_Pos", "k-mer"])
-            st.write(df)
+            st.write("Matching word positions:", matches)
 
-# Chatbot
-st.header("🤖 Ask Bio-Chatbot Anything")
-user_input = st.text_input("Ask your question")
-if st.button("Get Response"):
-    if user_input:
-        with st.spinner("Thinking..."):
-            response = chatbot_response(user_input)
-            st.success(response)
-    else:
-        st.warning("Please enter a question.")
+# -----------------------------
+# Chatbot Interface
+# -----------------------------
+st.markdown("---")
+st.header("💬 Ask Bio Chatbot")
+chat_input = st.text_input("Ask me anything about alignment, bioinformatics, or DNA...")
+if st.button("🤖 Get Reply"):
+    if chat_input:
+        with st.spinner("Generating reply..."):
+            response = chatbot_reply(chat_input)
+        st.success(response)
