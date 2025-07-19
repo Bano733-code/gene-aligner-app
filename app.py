@@ -5,6 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
+import os
+from huggingface_hub import login
+
+login(os.getenv("HUGGINGFACEHUB_API_TOKEN"))
 
 # Hugging Face chatbot setup
 @st.cache_resource
