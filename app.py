@@ -3,104 +3,81 @@ from Bio import pairwise2
 from Bio.Seq import Seq
 import numpy as np
 import matplotlib.pyplot as plt
-import openai
-from openai import OpenAI
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
 
-# ⛳ Load OpenAI key securely
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Hugging Face chatbot setup
+@st.cache_resource
+def load_chatbot():
+    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1", use_auth_token=True)
+    model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1", device_map="auto", torch_dtype=torch.float16, use_auth_token=True)
+    return tokenizer, model
 
-# 🧬 Alignment Methods
-def needleman_wunsch(seq1, seq2):
-    alignments = pairwise2.align.globalxx(seq1, seq2)
-    return alignments[0]
+tokenizer, model = load_chatbot()
 
-def smith_waterman(seq1, seq2):
-    alignments = pairwise2.align.localxx(seq1, seq2)
-    return alignments[0]
+def chatbot_response(user_msg):
+    input_ids = tokenizer.encode(user_msg, return_tensors="pt").to("cuda")
+    output = model.generate(input_ids, max_new_tokens=200, pad_token_id=tokenizer.eos_token_id)
+    return tokenizer.decode(output[0], skip_special_tokens=True)
 
-def word_method(seq1, seq2, word_size=2):
-    matches = []
-    for i in range(len(seq1) - word_size + 1):
-        word = seq1[i:i+word_size]
-        for j in range(len(seq2) - word_size + 1):
-            if seq2[j:j+word_size] == word:
-                matches.append((i, j, word))
-    return matches
-
-def dot_matrix(seq1, seq2):
-    matrix = np.zeros((len(seq1), len(seq2)))
-    for i in range(len(seq1)):
-        for j in range(len(seq2)):
-            if seq1[i] == seq2[j]:
-                matrix[i][j] = 1
-    return matrix
-
-# 🎨 Plotting Dot Matrix
-def plot_dot_matrix(matrix, seq1, seq2):
-    fig, ax = plt.subplots()
-    ax.imshow(matrix, cmap='Greys', interpolation='nearest')
-    ax.set_xticks(np.arange(len(seq2)))
-    ax.set_yticks(np.arange(len(seq1)))
-    ax.set_xticklabels(list(seq2))
-    ax.set_yticklabels(list(seq1))
-    st.pyplot(fig)
-
-# 🧠 Chat with Gene Alignment Bot
-def chat_with_bot(user_input):
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a bioinformatics expert helping students learn gene sequence alignment."},
-            {"role": "user", "content": user_input}
-        ]
-    )
-    return response.choices[0].message.content
-
-# 🧪 Streamlit UI
+# UI
 st.title("🧬 Gene Sequence Aligner + Chatbot")
-st.markdown("Paste or upload two DNA sequences and choose an alignment method.")
 
-# 📋 Input Method
-option = st.radio("Input method", ["Paste Sequences", "Upload FASTA files"])
+tab1, tab2 = st.tabs(["🔬 Alignment Tool", "🤖 Gene Chatbot"])
 
-if option == "Paste Sequences":
-    seq1 = st.text_area("Sequence 1", placeholder="ATCGATG...")
-    seq2 = st.text_area("Sequence 2", placeholder="ATGCGT...")
-else:
-    uploaded1 = st.file_uploader("Upload Sequence 1", type=["fasta", "fa"])
-    uploaded2 = st.file_uploader("Upload Sequence 2", type=["fasta", "fa"])
-    if uploaded1 and uploaded2:
-        from Bio import SeqIO
-        seq1 = str(SeqIO.read(uploaded1, "fasta").seq)
-        seq2 = str(SeqIO.read(uploaded2, "fasta").seq)
-    else:
-        seq1, seq2 = "", ""
+with tab1:
+    st.subheader("Enter or Upload Gene Sequences")
 
-# ⛓️ Alignment Method
-method = st.selectbox("Choose alignment method", ["Needleman-Wunsch", "Smith-Waterman", "Word Method", "Dot Matrix"])
+    seq1 = st.text_area("🔠 Sequence 1")
+    seq2 = st.text_area("🔡 Sequence 2")
+    uploaded_file = st.file_uploader("📂 Or Upload FASTA File (2 sequences)", type=["fasta", "fa"])
 
-if st.button("Align Sequences"):
-    if not seq1 or not seq2:
-        st.error("Please provide both sequences.")
-    else:
-        if method == "Needleman-Wunsch":
-            result = needleman_wunsch(seq1, seq2)
-            st.code(result.seqA + "\n" + result.seqB)
+    if uploaded_file is not None:
+        contents = uploaded_file.read().decode("utf-8").split(">")
+        sequences = [s.strip().split("\n", 1)[1].replace("\n", "") for s in contents if s]
+        if len(sequences) >= 2:
+            seq1, seq2 = sequences[:2]
+
+    method = st.selectbox("🧬 Choose Alignment Method", ["Dot Matrix", "Needleman-Wunsch", "Smith-Waterman", "Word Method"])
+
+    if st.button("🔍 Align"):
+        if method == "Dot Matrix":
+            window = 3
+            threshold = 2
+            x, y = len(seq1), len(seq2)
+            dot_matrix = np.zeros((x - window + 1, y - window + 1))
+            for i in range(x - window + 1):
+                for j in range(y - window + 1):
+                    match = sum(seq1[i + k] == seq2[j + k] for k in range(window))
+                    if match >= threshold:
+                        dot_matrix[i][j] = 1
+            fig, ax = plt.subplots()
+            ax.imshow(dot_matrix, cmap="Greys", origin="lower")
+            ax.set_xlabel("Sequence 2")
+            ax.set_ylabel("Sequence 1")
+            st.pyplot(fig)
+
+        elif method == "Needleman-Wunsch":
+            alignments = pairwise2.align.globalxx(seq1, seq2)
+            st.code(pairwise2.format_alignment(*alignments[0]))
+
         elif method == "Smith-Waterman":
-            result = smith_waterman(seq1, seq2)
-            st.code(result.seqA + "\n" + result.seqB)
-        elif method == "Word Method":
-            matches = word_method(seq1, seq2)
-            for i, j, word in matches:
-                st.write(f"Match '{word}' at Seq1[{i}] and Seq2[{j}]")
-        elif method == "Dot Matrix":
-            matrix = dot_matrix(seq1, seq2)
-            plot_dot_matrix(matrix, seq1, seq2)
+            alignments = pairwise2.align.localxx(seq1, seq2)
+            st.code(pairwise2.format_alignment(*alignments[0]))
 
-# 🤖 Chatbot
-st.markdown("## 💬 Ask the Alignment Bot")
-chat_input = st.text_input("Enter your question:")
-if st.button("Ask"):
-    if chat_input:
-        reply = chat_with_bot(chat_input)
-        st.success(reply)
+        elif method == "Word Method":
+            k = 3
+            words1 = set(seq1[i:i+k] for i in range(len(seq1)-k+1))
+            words2 = set(seq2[i:i+k] for i in range(len(seq2)-k+1))
+            common = words1.intersection(words2)
+            st.write(f"Common {k}-mers: {common}")
+            st.write(f"Total matches: {len(common)}")
+
+with tab2:
+    st.subheader("🤖 Ask About Gene Concepts")
+
+    user_input = st.text_input("💬 Ask your question:")
+    if st.button("🧠 Respond"):
+        with st.spinner("Thinking..."):
+            reply = chatbot_response(user_input)
+            st.success(reply)
