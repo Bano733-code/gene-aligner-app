@@ -1,54 +1,38 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from huggingface_hub import login
-import os
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
-# Load Hugging Face token securely from Streamlit secrets
-HF_TOKEN = st.secrets["HF_TOKEN"]
-
-# Login to Hugging Face Hub
-login(token=HF_TOKEN)
+st.set_page_config(page_title="Gene Aligner + Chatbot", layout="wide")
 
 @st.cache_resource
 def load_chatbot():
-    tokenizer = AutoTokenizer.from_pretrained(
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        token=HF_TOKEN
-    )
-    model = AutoModelForCausalLM.from_pretrained(
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        token=HF_TOKEN
-    )
+    tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
+    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
     return tokenizer, model
 
 tokenizer, model = load_chatbot()
 
-# Streamlit UI
-st.set_page_config(page_title="Gene Sequence Aligner + Chatbot")
-st.title("🧬 Gene Sequence Aligner + 🧠 Bio Chatbot")
+st.title("🧬 Gene Aligner + 🤖 Chatbot")
 
-# Input DNA/RNA sequences
-seq1 = st.text_area("🔹 Sequence 1", height=100)
-seq2 = st.text_area("🔸 Sequence 2", height=100)
+with st.expander("💬 Chat with BioBot"):
+    user_input = st.text_input("Ask me anything about gene alignment, sequences, or bioinformatics")
 
-# Chatbot Input
-st.markdown("### 💬 Ask the Gene Chatbot")
-user_input = st.text_input("Type your question here")
+    if user_input:
+        # Encode user input and add to chat history
+        input_ids = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors="pt")
 
-# Chatbot Output
-if user_input:
-    prompt = f"<s>[INST] {user_input} [/INST]"
-    inputs = tokenizer(prompt, return_tensors="pt")
-    output = model.generate(**inputs, max_new_tokens=256)
-    response = tokenizer.decode(output[0], skip_special_tokens=True)
-    st.success(response)
+        # Generate response
+        chat_history_ids = model.generate(
+            input_ids,
+            max_length=1000,
+            pad_token_id=tokenizer.eos_token_id,
+            no_repeat_ngram_size=3,
+            do_sample=True,
+            top_k=50,
+            top_p=0.95,
+            temperature=0.75,
+        )
 
-# (OPTIONAL) Alignment selection dropdown
-alignment_method = st.selectbox("Choose Alignment Method", [
-    "Dot Matrix", "Needleman-Wunsch", "Smith-Waterman", "Word Method"
-])
-
-# Alignment (not implemented yet)
-if st.button("🔍 Align Sequences"):
-    st.info(f"Alignment using: {alignment_method}")
-    st.warning("🧪 Alignment logic not implemented in this version.")
+        # Decode and display
+        response = tokenizer.decode(chat_history_ids[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
+        st.markdown(f"**BioBot:** {response}")
