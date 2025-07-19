@@ -8,8 +8,8 @@ st.set_page_config(page_title="Gene Aligner + Chatbot", layout="wide")
 @st.cache_resource(show_spinner="Loading BioBot...")
 def load_chatbot():
     try:
-        tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-        model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
+        tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
+        model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
         return tokenizer, model
     except Exception as e:
         st.error(f"⚠️ Could not load chatbot model: {e}")
