@@ -1,7 +1,5 @@
 streamlit
-biopython
-pandas
-matplotlib
-numpy
 transformers
 huggingface_hub
+torch
+numpy
