@@ -1,52 +1,71 @@
 import streamlit as st
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+import pandas as pd
+from alignment.needleman_wunsch import needleman_wunsch
+from alignment.smith_waterman import smith_waterman
+from alignment.dot_matrix import plot_dot_matrix
+from alignment.word_method import word_alignment
+from Bio import SeqIO
+import io
 
-st.set_page_config(page_title="Gene Aligner + Chatbot", layout="wide")
+st.title("🧬 GeneAligner: Bioinformatics Sequence Alignment Tool")
 
-# Caching model + tokenizer
-@st.cache_resource(show_spinner="Loading BioBot...")
-def load_chatbot():
-    try:
-        tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
-        model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
-        return tokenizer, model
-    except Exception as e:
-        st.error(f"⚠️ Could not load chatbot model: {e}")
-        return None, None
+st.subheader("📁 Upload or Paste Sequences")
 
-tokenizer, model = load_chatbot()
+uploaded_file1 = st.file_uploader("Upload Sequence A (FASTA, GenBank, TXT)", type=["fasta", "fa", "gb", "txt"])
+uploaded_file2 = st.file_uploader("Upload Sequence B (FASTA, GenBank, TXT)", type=["fasta", "fa", "gb", "txt"])
 
-st.title("🧬 Gene Aligner + 🤖 Chatbot")
+def read_sequence(uploaded_file):
+    if uploaded_file:
+        content = uploaded_file.read().decode("utf-8")
+        file_type = uploaded_file.name.split(".")[-1].lower()
 
-with st.expander("💬 Chat with BioBot"):
-    if tokenizer is None or model is None:
-        st.warning("Model not available. Please try again later or check logs.")
-        st.stop()
+        if file_type in ["fa", "fasta"]:
+            lines = content.splitlines()
+            return "".join([line for line in lines if not line.startswith(">")])
+        elif file_type == "gb":
+            try:
+                record = SeqIO.read(io.StringIO(content), "genbank")
+                return str(record.seq)
+            except:
+                return ""
+        elif file_type == "txt":
+            return content.replace("\n", "").strip()
+    return ""
 
-    user_input = st.text_input("Ask me anything about gene alignment, sequences, or bioinformatics")
+seq1 = read_sequence(uploaded_file1) or st.text_area("Or paste Sequence A", height=150)
+seq2 = read_sequence(uploaded_file2) or st.text_area("Or paste Sequence B", height=150)
 
-    if user_input:
-        try:
-            input_ids = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors="pt")
+method = st.selectbox("🔧 Choose Alignment Method", 
+                      ["Dot Matrix", "Needleman-Wunsch", "Smith-Waterman", "Word Method"])
 
-            # Move model to CPU (Streamlit Cloud doesn't support GPU)
-            device = torch.device("cpu")
-            model.to(device)
-            input_ids = input_ids.to(device)
+if st.button("🔍 Align Sequences"):
+    if not seq1 or not seq2:
+        st.warning("Please input both sequences.")
+    else:
+        align1, align2 = "", ""
+        if method == "Dot Matrix":
+            plot_dot_matrix(seq1, seq2)
+        elif method == "Needleman-Wunsch":
+            score, align1, align2 = needleman_wunsch(seq1, seq2)
+            st.write(f"**Global Alignment Score:** {score}")
+        elif method == "Smith-Waterman":
+            score, align1, align2 = smith_waterman(seq1, seq2)
+            st.write(f"**Local Alignment Score:** {score}")
+        elif method == "Word Method":
+            word_alignment(seq1, seq2, word_size=3)
 
-            chat_history_ids = model.generate(
-                input_ids,
-                max_length=1000,
-                pad_token_id=tokenizer.eos_token_id,
-                no_repeat_ngram_size=3,
-                do_sample=True,
-                top_k=50,
-                top_p=0.95,
-                temperature=0.75,
+        if align1 and align2:
+            st.code(align1)
+            st.code(align2)
+
+            df = pd.DataFrame({
+                "Sequence A": list(align1),
+                "Sequence B": list(align2)
+            })
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="📥 Download Alignment as CSV",
+                data=csv,
+                file_name="alignment_result.csv",
+                mime="text/csv"
             )
-
-            response = tokenizer.decode(chat_history_ids[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
-            st.markdown(f"**BioBot:** {response}")
-        except Exception as e:
-            st.error(f"❌ Error while generating response: {e}")
