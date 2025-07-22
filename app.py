@@ -73,7 +73,7 @@ if st.button("🔍 Align Sequences"):
         if method == "Dot Matrix":
             plot_dot_matrix(seq1, seq2)
         elif method == "Needleman-Wunsch":
-            score, align1, align2, matrix = needleman_wunsch(seq1, seq2)
+            score, align1, align2, matrix,match_line,identity = needleman_wunsch(seq1, seq2)
             st.write(f"**Global Alignment Score:** {score}")
             
             # Show Scoring Matrix
