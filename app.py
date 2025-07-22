@@ -7,6 +7,7 @@ from alignment.word_method import word_alignment
 from Bio import SeqIO
 import io
 
+st.set_page_config(page_title="GeneAligner", layout="wide")
 st.title("🧬 GeneAligner: Bioinformatics Sequence Alignment Tool")
 
 uploaded_file1 = st.file_uploader("Upload Sequence A (FASTA, GenBank, TXT)", type=["fasta", "fa", "gb", "txt"])
@@ -28,7 +29,7 @@ def read_sequence(uploaded_file):
             return content.replace("\n", "").strip()
     return ""
 
-# Utility to show match/mismatch line
+# Alignment match line generator
 def get_match_line(seq1, seq2):
     line = ""
     for a, b in zip(seq1, seq2):
@@ -40,10 +41,9 @@ def get_match_line(seq1, seq2):
             line += "."
     return line
 
-# Optional: colored alignment display using markdown
+# Color-coded HTML alignment
 def render_alignment_with_color(seq1, seq2):
-    html_seq1 = ""
-    html_seq2 = ""
+    html_seq1, html_seq2 = "", ""
     for a, b in zip(seq1, seq2):
         if a == b:
             html_seq1 += f'<span style="color:green">{a}</span>'
@@ -69,29 +69,35 @@ if st.button("🔍 Align Sequences"):
     if not seq1 or not seq2:
         st.warning("Please input both sequences.")
     else:
-        align1, align2 = "", ""
+        align1 = align2 = ""
         if method == "Dot Matrix":
             plot_dot_matrix(seq1, seq2)
         elif method == "Needleman-Wunsch":
-            score, align1, align2 = needleman_wunsch(seq1, seq2)
+            score, align1, align2, matrix = needleman_wunsch(seq1, seq2)
             st.write(f"**Global Alignment Score:** {score}")
+            
+            # Show Scoring Matrix
+            st.markdown("#### 🧮 Alignment Scoring Matrix")
+            df_matrix = pd.DataFrame(matrix, 
+                                     index=["-"] + list(seq1), 
+                                     columns=["-"] + list(seq2))
+            st.dataframe(df_matrix.style.background_gradient(cmap='Blues'))
         elif method == "Smith-Waterman":
             score, align1, align2 = smith_waterman(seq1, seq2)
             st.write(f"**Local Alignment Score:** {score}")
         elif method == "Word Method":
             word_alignment(seq1, seq2, word_size=3)
 
-        # Show basic alignment
+        # Output alignment if available
         if align1 and align2:
             st.markdown("#### 🧬 Aligned Sequences")
             st.code(align1)
             st.code(get_match_line(align1, align2))
             st.code(align2)
 
-            # Optional color rendering
             render_alignment_with_color(align1, align2)
 
-            # Download CSV
+            # Download as CSV
             df = pd.DataFrame({"Sequence A": list(align1), "Sequence B": list(align2)})
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
