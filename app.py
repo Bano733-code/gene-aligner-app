@@ -90,7 +90,7 @@ if st.button("🔍 Align Sequences"):
             row_labels = [f"{i}-{char}" for i, char in enumerate("-" + seq1)]
             col_labels = [f"{i}-{char}" for i, char in enumerate("-" + seq2)]
             df_matrix = pd.DataFrame(matrix, index=row_labels, columns=col_labels)
-            st.dataframe(df_matrix.style.background_gradient(cmap='blues'))
+            st.dataframe(df_matrix.style.background_gradient(cmap='Blues'))
         elif method == "Word Method":
             word_alignment(seq1, seq2, word_size=3)
 
