@@ -83,8 +83,14 @@ if st.button("🔍 Align Sequences"):
             df_matrix = pd.DataFrame(matrix, index=row_labels, columns=col_labels)
             st.dataframe(df_matrix.style.background_gradient(cmap='Blues'))
         elif method == "Smith-Waterman": 
-            score, align1, align2 = smith_waterman(seq1, seq2)
+            score, align1, align2,matrix,match_line,identity = smith_waterman(seq1, seq2)
             st.write(f"**Local Alignment Score:** {score}")
+            #Scoring matrix
+            st.markdown("#### 🧮 Alignment Scoring Matrix")
+            row_labels = [f"{i}-{char}" for i, char in enumerate("-" + seq1)]
+            col_labels = [f"{i}-{char}" for i, char in enumerate("-" + seq2)]
+            df_matrix = pd.DataFrame(matrix, index=row_labels, columns=col_labels)
+            st.dataframe(df_matrix.style.background_gradient(cmap='purples'))
         elif method == "Word Method":
             word_alignment(seq1, seq2, word_size=3)
 
