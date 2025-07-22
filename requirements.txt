@@ -1,3 +1,5 @@
 streamlit
-transformers
-torch
+biopython
+numpy
+matplotlib
+pandas
