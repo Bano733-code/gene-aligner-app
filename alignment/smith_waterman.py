@@ -31,5 +31,5 @@ def smith_waterman(seq1, seq2, match=1, mismatch=-1, gap=-2):
             align2 = seq2[j - 1] + align2
             j -= 1
 
-    return max_score, align1, align2,score_matrix, match_line, identity
+    return max_score, align1, align2,matrix, match_line, identity
 
