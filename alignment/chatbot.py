@@ -1,39 +1,16 @@
-from openai import OpenAI
-import streamlit as st
+# alignment/chatbot.py
 
-# Create OpenAI client using your secret API key
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+from transformers import pipeline
+
+# Load Hugging Face model
+generator = pipeline("text2text-generation", model="google/flan-t5-base")
 
 def interpret_alignment(method, score, identity, align1, align2):
-    prompt = f"""
-You are a helpful bioinformatics assistant.
-
-A user performed a {method} alignment between two gene sequences.
-
-Here are the results:
-
-🔹 Alignment Score: {score}
-🔹 Identity: {identity:.2f}%
-
-🧬 Aligned Sequence 1:
-{align1}
-
-🧬 Aligned Sequence 2:
-{align2}
-
-Can you explain what these results mean in simple terms?
-Provide a short summary of the alignment quality and whether it indicates strong similarity between the sequences.
-"""
-
-    # Use OpenAI Chat API (new v1.x SDK format)
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",  # or "gpt-4" if you have access
-        messages=[
-            {"role": "system", "content": "You are a helpful bioinformatics assistant."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.5,
-        max_tokens=500
+    prompt = (
+        f"Explain the following gene sequence alignment using {method}:\n\n"
+        f"Alignment 1: {align1}\nAlignment 2: {align2}\n"
+        f"Score: {score}\nIdentity: {identity}\n\n"
+        "Provide a brief, research-grade interpretation suitable for a bioinformatics professor."
     )
-
-    return response.choices[0].message.content
+    result = generator(prompt, max_length=256, do_sample=False)
+    return result[0]["generated_text"]
