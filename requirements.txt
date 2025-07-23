@@ -3,4 +3,5 @@ biopython
 numpy
 matplotlib
 pandas
-openai
+transformer
+torch
