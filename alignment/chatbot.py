@@ -1,25 +1,39 @@
-import openai
+from openai import OpenAI
 import streamlit as st
 
-# Securely load API key from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Create OpenAI client using your secret API key
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 def interpret_alignment(method, score, identity, align1, align2):
-    prompt = f"""You're a bioinformatics assistant. Explain the following {method} alignment between two sequences.
-    
-Alignment Score: {score}
-Sequence Identity: {identity}%
-Aligned Sequences:
+    prompt = f"""
+You are a helpful bioinformatics assistant.
+
+A user performed a {method} alignment between two gene sequences.
+
+Here are the results:
+
+🔹 Alignment Score: {score}
+🔹 Identity: {identity:.2f}%
+
+🧬 Aligned Sequence 1:
 {align1}
+
+🧬 Aligned Sequence 2:
 {align2}
 
-Explain this alignment's significance in simple terms for a student."""
+Can you explain what these results mean in simple terms?
+Provide a short summary of the alignment quality and whether it indicates strong similarity between the sequences.
+"""
 
-    response = openai.ChatCompletion.create(
+    # Use OpenAI Chat API (new v1.x SDK format)
+    response = client.chat.completions.create(
         model="gpt-3.5-turbo",  # or "gpt-4" if you have access
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        max_tokens=400
+        messages=[
+            {"role": "system", "content": "You are a helpful bioinformatics assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.5,
+        max_tokens=500
     )
-    
-    return response["choices"][0]["message"]["content"]
+
+    return response.choices[0].message.content
