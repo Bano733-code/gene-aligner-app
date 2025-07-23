@@ -3,6 +3,7 @@ import pandas as pd
 from alignment.needleman_wunsch import needleman_wunsch
 from alignment.smith_waterman import smith_waterman
 from alignment.dot_matrix import plot_dot_matrix
+from alignment.chatbot import interpret_alignment
 from alignment.word_method import word_alignment
 from Bio import SeqIO
 import io
@@ -126,17 +127,7 @@ if st.button("🔍 Align Sequences"):
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
         # Import the chatbot
         # ✅ Chatbot explanation section
-        from alignment.chatbot import interpret_alignment
+        #from alignment.chatbot import interpret_alignment
 
         st.markdown("### 🤖 Alignment Interpreter Chatbot")
-        with st.expander("💬 Ask the bot to explain your alignment result"):
-            if align1 and align2:
-               explanation = interpret_alignment(
-                    method=method,
-                    score=score if 'score' in locals() else None,
-                    identity=identity if 'identity' in locals() else None,
-                    align1=align1,
-                    align2=align2)
-               st.markdown(explanation)
-            else:
-               st.warning("No alignment found to interpret.")            
+                 
