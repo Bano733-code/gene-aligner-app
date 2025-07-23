@@ -113,5 +113,13 @@ if st.button("🔍 Align Sequences"):
 
         st.markdown("### 🤖 Alignment Interpreter Chatbot")
         with st.expander("💬 Ask the bot to explain your alignment result"):
-            explanation = interpret_alignment(method, score, identity, align1, align2)
-            st.markdown(explanation)
+            if align1 and align2:
+               explanation = interpret_alignment(
+                    method=method,
+                    score=score if 'score' in locals() else None,
+                    identity=identity if 'identity' in locals() else None,
+                    align1=align1,
+                    align2=align2)
+               st.markdown(explanation)
+            else:
+               st.warning("No alignment found to interpret.")            
