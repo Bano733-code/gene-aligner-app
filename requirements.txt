@@ -3,5 +3,5 @@ biopython
 numpy
 matplotlib
 pandas
-transformer
+transformers
 torch
