@@ -129,5 +129,25 @@ if st.button("🔍 Align Sequences"):
         # ✅ Chatbot explanation section
         #from alignment.chatbot import interpret_alignment
 
-        st.markdown("### 🤖 Alignment Interpreter Chatbot")
+        # AI-generated explanation using Hugging Face model
+        with st.spinner("🧠 Interpreting alignment using AI..."):
+            explanation = interpret_alignment(method, score, identity, align1, align2)
+            st.success("AI Interpretation Ready!")
+            st.markdown("### 🤖 AI Interpretation")
+            st.info(explanation)
+
+        # Optional: Chatbot interface for custom questions
+        st.markdown("### 💬 Ask a Question about the Alignment")
+        user_query = st.text_input("Enter your question (e.g., Is this alignment biologically significant?)")
+        if user_query:
+            chat_prompt = (
+                f"You are a bioinformatics expert. The alignment method was {method}.\n"
+                f"Alignment 1: {align1}\nAlignment 2: {align2}\nScore: {score}, Identity: {identity}.\n"
+                f"User question: {user_query}\n"
+                f"Answer the question professionally in 2-3 lines."
+            )
+            with st.spinner("Generating answer..."):
+                response = interpret_alignment("Bioinformatics Chat", score, identity, align1, align2 + "\n" + user_query)
+                st.success("Response ready!")
+                st.info(response)
                  
