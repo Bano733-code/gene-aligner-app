@@ -78,7 +78,7 @@ if st.button("🔍 Align Sequences"):
                 st.markdown(explanation)
     else:
         align1 = align2 = ""
-        elif method == "Needleman-Wunsch":
+        if method == "Needleman-Wunsch":
             score, align1, align2, matrix,match_line,identity = needleman_wunsch(seq1, seq2)
             st.write(f"**Global Alignment Score:** {score}")
             # Show Scoring Matrix
