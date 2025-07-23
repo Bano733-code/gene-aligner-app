@@ -108,14 +108,10 @@ if st.button("🔍 Align Sequences"):
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
         # Import the chatbot
+        # ✅ Chatbot explanation section
         from alignment.chatbot import interpret_alignment
 
-        # Chatbot-style interpretation panel
         st.markdown("### 🤖 Alignment Interpreter Chatbot")
-
         with st.expander("💬 Ask the bot to explain your alignment result"):
-             explanation = interpret_alignment(method, score if 'score' in locals() else None, 
-                                      identity if 'identity' in locals() else None, 
-                                      align1, align2)
-        st.markdown(explanation)
-
+            explanation = interpret_alignment(method, score, identity, align1, align2)
+            st.markdown(explanation)
