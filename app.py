@@ -7,6 +7,8 @@ from alignment.chatbot import interpret_alignment
 from alignment.word_method import word_alignment
 from Bio import SeqIO
 import io
+import os
+os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
 
 st.set_page_config(page_title="GeneAligner", layout="wide")
 st.title("🧬 GeneAligner: Bioinformatics Sequence Alignment Tool")
