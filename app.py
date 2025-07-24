@@ -8,7 +8,7 @@ from alignment.word_method import word_alignment
 from Bio import SeqIO
 import io
 import os
-os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
+os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"].strip()  # Or use user input field
 
 st.set_page_config(page_title="GeneAligner", layout="wide")
 st.title("🧬 GeneAligner: Bioinformatics Sequence Alignment Tool")
@@ -135,18 +135,17 @@ if st.button("🔍 Align Sequences"):
        
 
 # Set your GROQ_API_KEY once at the top (e.g., via st.secrets or user input in Colab)
-           os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"].strip()  # Or use user input field
 
 # Chatbot Section
-           with st.expander("💬 Ask AI About the Alignment"):
-              question = st.text_input("Ask a question about the alignment:")
+            with st.expander("💬 Ask AI About the Alignment"):
+                 question = st.text_input("Ask a question about the alignment:")
 
-              if question:
-                 st.markdown(f"**Question:** {question}")
-                    with st.spinner("AI is thinking..."):
-                       explanation = interpret_alignment(method, score, identity, align1, align2, question)
-                       st.markdown("🧠 **AI Response:**")
-                       st.info(explanation)
+                 if question:
+                    st.markdown(f"**Question:** {question}")
+                       with st.spinner("AI is thinking..."):
+                           explanation = interpret_alignment(method, score, identity, align1, align2, question)
+                           st.markdown("🧠 **AI Response:**")
+                           st.info(explanation)
 
 
 
