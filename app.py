@@ -131,12 +131,21 @@ if st.button("🔍 Align Sequences"):
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
         
-            with st.chat_message("user"):
-                st.markdown(f"**Question:** {question}")
+            # 👇 Chatbot-style Interpretation UI
+            with st.expander("🤖 AI Interpretation of Alignment Result"):
+               explanation = interpret_alignment(method, score, identity, align1, align2)
+               st.markdown(explanation)
 
-            with st.chat_message("assistant"):
-                response = interpret_alignment(method, score, identity, align1, align2, question)
-                st.markdown(response)
+               st.markdown("### 💬 Ask a Question about the Alignment")
+               user_question = st.text_input("Ask your question:")
+
+               if user_question:
+                 with st.chat_message("user"):
+                      st.markdown(f"**Question:** {user_question}")
+
+                 with st.chat_message("assistant"):
+                      response = interpret_alignment(method, score, identity, align1, align2, question)
+                      st.markdown(response)
 
 
 
