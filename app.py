@@ -142,10 +142,10 @@ if st.button("🔍 Align Sequences"):
 
                  if question:
                     st.markdown(f"**Question:** {question}")
-                       with st.spinner("AI is thinking..."):
-                           explanation = interpret_alignment(method, score, identity, align1, align2, question)
-                           st.markdown("🧠 **AI Response:**")
-                           st.info(explanation)
+                    with st.spinner("AI is thinking..."):
+                        explanation = interpret_alignment(method, score, identity, align1, align2, question)
+                        st.markdown("🧠 **AI Response:**")
+                        st.info(explanation)
 
 
 
