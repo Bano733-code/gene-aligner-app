@@ -130,23 +130,14 @@ if st.button("🔍 Align Sequences"):
             df = pd.DataFrame({"Sequence A": a_list, "Sequence B": b_list})
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
-        # Import the chatbot
-        # ✅ Chatbot explanation section
-        #from alignment.chatbot import interpret_alignment
+        
+            with st.chat_message("user"):
+                st.markdown(f"**Question:** {question}")
 
-        # AI-generated explanation using Hugging Face model
-            with st.expander("🤖 AI Interpretation of Alignment Result"):
-                explanation = interpret_alignment(method, score, identity, align1, align2)
-                st.markdown(explanation)
+            with st.chat_message("assistant"):
+                response = interpret_alignment(method, score, identity, align1, align2, question)
+                st.markdown(response)
 
-# 👇 Add chatbot-style Q&A
-                st.markdown("### 💬 Ask a Question about the Alignment")
-                user_query = st.text_input("Ask your question:")
-
-                if user_query:
-                   with st.spinner("Generating answer..."):
-                      response = interpret_alignment(method, score, identity, align1, align2, question=user_query)
-                      st.info(response)
 
 
                  
