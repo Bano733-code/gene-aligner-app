@@ -22,5 +22,5 @@ def interpret_alignment(method, score, identity, align1, align2, question=None):
             "Provide a brief, research-grade interpretation suitable for a bioinformatics professor."
         )
 
-    result = generator(prompt, max_length=256, do_sample=False)
+    result = generator(prompt, max_new_tokens=256, do_sample=False)
     return result[0]["generated_text"]
