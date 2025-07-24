@@ -1,7 +1,6 @@
 streamlit
+replicate
 biopython
 numpy
-matplotlib
 pandas
-transformers
-torch
+requests
