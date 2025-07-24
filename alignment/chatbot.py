@@ -21,7 +21,7 @@ def interpret_alignment(method, score, identity, align1, align2, question=None):
 
     try:
         output = replicate.run(
-            "mistralai/mistral-7b-instruct-v0.1",
+            "meta/llama-2-7b-chat",
             input={"prompt": prompt, "max_new_tokens": 300}
         )
         return "".join(output)
