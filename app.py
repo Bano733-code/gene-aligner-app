@@ -135,8 +135,8 @@ if st.button("🔍 Align Sequences"):
 
                 if user_query:
                    with st.spinner("Generating answer..."):
-                   response = interpret_alignment(method, score, identity, align1, align2, question=user_query)
-                   st.info(response)
+                      response = interpret_alignment(method, score, identity, align1, align2, question=user_query)
+                      st.info(response)
 
 
                  
