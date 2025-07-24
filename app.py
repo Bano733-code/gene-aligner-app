@@ -124,7 +124,7 @@ if st.button("🔍 Align Sequences"):
             a_list += [""] * (max_len - len(a_list))  # pad with empty strings
             b_list += [""] * (max_len - len(b_list))
 
-            df = pd.DataFrame({"Sequence A": list(align1), "Sequence B": list(align2)})
+            df = pd.DataFrame({"Sequence A": a_list, "Sequence B": b_list})
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
         # Import the chatbot
