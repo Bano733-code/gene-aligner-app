@@ -117,6 +117,13 @@ if st.button("🔍 Align Sequences"):
             render_alignment_with_color(align1, align2)
 
             # Download as CSV
+            a_list = list(align1)
+            b_list = list(align2)
+
+            max_len = max(len(a_list), len(b_list))
+            a_list += [""] * (max_len - len(a_list))  # pad with empty strings
+            b_list += [""] * (max_len - len(b_list))
+
             df = pd.DataFrame({"Sequence A": list(align1), "Sequence B": list(align2)})
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
