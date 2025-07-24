@@ -73,9 +73,8 @@ if st.button("🔍 Align Sequences"):
      #   align1 = align2 = ""
         if method == "Dot Matrix":
             plot_dot_matrix(seq1, seq2)
-            with st.expander("💬 Ask the bot to explain your alignment result"):
-                explanation = interpret_alignment("Dot Matrix", score="N/A", identity="N/A", align1=align1, align2=align2)
-                st.markdown(explanation)
+            align1, align2, score, identity = seq1, seq2, "N/A", "N/A"
+            
     else:
         align1 = align2 = ""
         if method == "Needleman-Wunsch":
@@ -87,12 +86,7 @@ if st.button("🔍 Align Sequences"):
             col_labels = [f"{i}-{char}" for i, char in enumerate("-" + seq2)]
             df_matrix = pd.DataFrame(matrix, index=row_labels, columns=col_labels)
             st.dataframe(df_matrix.style.background_gradient(cmap='Blues'))
-            if align1 and align2:
-                with st.expander("💬 Ask the bot to explain your alignment result"):
-                    explanation = interpret_alignment(method, score, identity, align1, align2)
-                    st.markdown(explanation)
-            else:
-                st.warning("No alignment found to interpret.")
+          
         elif method == "Smith-Waterman": 
             score, align1, align2,matrix,match_line,identity = smith_waterman(seq1, seq2)
             st.write(f"**Local Alignment Score:** {score}")
@@ -102,17 +96,16 @@ if st.button("🔍 Align Sequences"):
             col_labels = [f"{i}-{char}" for i, char in enumerate("-" + seq2)]
             df_matrix = pd.DataFrame(matrix, index=row_labels, columns=col_labels)
             st.dataframe(df_matrix.style.background_gradient(cmap='Blues'))
-            if align1 and align2:
-                with st.expander("💬 Ask the bot to explain your alignment result"):
-                    explanation = interpret_alignment(method, score, identity, align1, align2)
-                    st.markdown(explanation)
-            else:
-                st.warning("No alignment found to interpret.")
+           # if align1 and align2:
+            #    with st.expander("💬 Ask the bot to explain your alignment result"):
+             #       explanation = interpret_alignment(method, score, identity, align1, align2)
+              #      st.markdown(explanation)
+            #else:
+             #   st.warning("No alignment found to interpret.")
         elif method == "Word Method":
             word_alignment(seq1, seq2, word_size=3)
-            with st.expander("💬 Ask the bot to explain your alignment result"):
-                explanation = interpret_alignment("Word Method", score="N/A", identity="N/A", align1=align1, align2=align2)
-                st.markdown(explanation)
+                #explanation = interpret_alignment("Word Method", score="N/A", identity="N/A", align1=align1, align2=align2)
+                
 
         # Output alignment if available
         if align1 and align2:
@@ -132,11 +125,18 @@ if st.button("🔍 Align Sequences"):
         #from alignment.chatbot import interpret_alignment
 
         # AI-generated explanation using Hugging Face model
-        with st.spinner("🧠 Interpreting alignment using AI..."):
-            explanation = interpret_alignment(method, score, identity, align1, align2)
-            st.success("AI Interpretation Ready!")
-            st.markdown("### 🤖 AI Interpretation")
-            st.info(explanation)
+            with st.expander("🤖 AI Interpretation of Alignment Result"):
+                explanation = interpret_alignment(method, score, identity, align1, align2)
+                st.markdown(explanation)
+
+# 👇 Add chatbot-style Q&A
+              st.markdown("### 💬 Ask a Question about the Alignment")
+              user_query = st.text_input("Ask your question:")
+
+        if user_query:
+            with st.spinner("Generating answer..."):
+                response = interpret_alignment(method, score, identity, align1, align2, question=user_query)
+                st.info(response)
 
 
                  
