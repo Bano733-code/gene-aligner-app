@@ -130,8 +130,8 @@ if st.button("🔍 Align Sequences"):
                 st.markdown(explanation)
 
 # 👇 Add chatbot-style Q&A
-              st.markdown("### 💬 Ask a Question about the Alignment")
-              user_query = st.text_input("Ask your question:")
+                st.markdown("### 💬 Ask a Question about the Alignment")
+                user_query = st.text_input("Ask your question:")
 
         if user_query:
             with st.spinner("Generating answer..."):
