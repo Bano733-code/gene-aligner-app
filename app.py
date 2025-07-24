@@ -132,20 +132,22 @@ if st.button("🔍 Align Sequences"):
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
         
             # 👇 Chatbot-style Interpretation UI
-            with st.expander("🤖 AI Interpretation of Alignment Result"):
-               explanation = interpret_alignment(method, score, identity, align1, align2)
-               st.markdown(explanation)
+       
 
-               st.markdown("### 💬 Ask a Question about the Alignment")
-               user_question = st.text_input("Ask your question:")
+# Set your GROQ_API_KEY once at the top (e.g., via st.secrets or user input in Colab)
+           os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"].strip()  # Or use user input field
 
-               if user_question:
-                 with st.chat_message("user"):
-                      st.markdown(f"**Question:** {user_question}")
+# Chatbot Section
+           with st.expander("💬 Ask AI About the Alignment"):
+              question = st.text_input("Ask a question about the alignment:")
 
-                 with st.chat_message("assistant"):
-                      response = interpret_alignment(method, score, identity, align1, align2, question)
-                      st.markdown(response)
+              if question:
+                 st.markdown(f"**Question:** {question}")
+                    with st.spinner("AI is thinking..."):
+                       explanation = interpret_alignment(method, score, identity, align1, align2, question)
+                       st.markdown("🧠 **AI Response:**")
+                       st.info(explanation)
+
 
 
 
