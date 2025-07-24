@@ -133,10 +133,10 @@ if st.button("🔍 Align Sequences"):
                 st.markdown("### 💬 Ask a Question about the Alignment")
                 user_query = st.text_input("Ask your question:")
 
-        if user_query:
-            with st.spinner("Generating answer..."):
-                response = interpret_alignment(method, score, identity, align1, align2, question=user_query)
-                st.info(response)
+                if user_query:
+                   with st.spinner("Generating answer..."):
+                   response = interpret_alignment(method, score, identity, align1, align2, question=user_query)
+                   st.info(response)
 
 
                  
