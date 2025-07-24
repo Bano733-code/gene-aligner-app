@@ -1,27 +1,49 @@
+# alignment/chatbot.py
+
+import os
+import requests
+
+# Make sure your GROQ_API_KEY is loaded securely (e.g., via Streamlit secrets or Colab form)
+# and set in os.environ before calling this
+
 def interpret_alignment(method, score, identity, align1, align2, question=None):
-    score = float(score)
-    identity = float(identity)
+    try:
+        # Clean and fetch key safely
+        api_key = os.getenv("GROQ_API_KEY", "").strip()
 
-    base_response = f"Based on the {method} alignment:\n\n"
-    base_response += f"- Alignment Score: {score}\n"
-    base_response += f"- Identity: {identity}%\n"
+        if not api_key:
+            return "❌ Missing or invalid GROQ_API_KEY."
 
-    if identity > 90 and score > 80:
-        base_response += "🧬 This indicates a very strong match — the sequences are likely homologous."
-    elif identity > 70:
-        base_response += "🔬 This is a moderately good alignment — some level of similarity exists."
-    else:
-        base_response += "❗ This alignment is weak — the sequences might not be related."
+        # Construct prompt
+        prompt = (
+            f"You are a helpful bioinformatics expert.\n"
+            f"Method: {method}\n"
+            f"Score: {score}\n"
+            f"Identity: {identity}%\n"
+            f"Alignment 1: {align1}\n"
+            f"Alignment 2: {align2}\n"
+        )
+        if question:
+            prompt += f"User question: {question}\nAnswer concisely."
 
-    if question:
-        question = question.lower()
-        if "similar" in question or "match" in question:
-            base_response += "\n\n💬 Yes, the sequences show similarity based on the identity score."
-        elif "mutation" in question:
-            base_response += "\n\n🧪 This result may indicate possible mutations or variations."
-        elif "conserved" in question:
-            base_response += "\n\n🌿 There could be conserved regions, depending on local alignments."
-        else:
-            base_response += "\n\n🤖 I need more specific wording to give a better answer."
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
 
-    return base_response
+        payload = {
+            "model": "mixtral-8x7b-32768",
+            "messages": [
+                {"role": "system", "content": "You are a helpful bioinformatics expert."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 300
+        }
+
+        response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+
+    except Exception as e:
+        return f"❌ Exception occurred: {str(e)}"
