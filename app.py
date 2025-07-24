@@ -69,14 +69,14 @@ method = st.selectbox("🔧 Choose Alignment Method",
 if st.button("🔍 Align Sequences"):
     if not seq1 or not seq2:
         st.warning("Please input both sequences.")
-    #else:
-     #   align1 = align2 = ""
+    else:
+        align1 = align2 = ""
         if method == "Dot Matrix":
             plot_dot_matrix(seq1, seq2)
             align1, align2, score, identity = seq1, seq2, "N/A", "N/A"
             
-    else:
-        align1 = align2 = ""
+    #else:
+     #   align1 = align2 = ""
         if method == "Needleman-Wunsch":
             score, align1, align2, matrix,match_line,identity = needleman_wunsch(seq1, seq2)
             st.write(f"**Global Alignment Score:** {score}")
