@@ -1,6 +1,5 @@
 streamlit
-replicate
 biopython
 numpy
 pandas
-requests
+
