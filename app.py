@@ -104,8 +104,8 @@ if st.button("🔍 Align Sequences"):
              #   st.warning("No alignment found to interpret.")
         elif method == "Word Method":
             word_alignment(seq1, seq2, word_size=3)
-                  score="N/A"
-                  identity="N/A"
+            score,Identity="N/A","N/A"
+                  
                 
 
         # Output alignment if available
