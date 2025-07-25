@@ -3,3 +3,5 @@ biopython
 numpy
 pandas
 requests
+matplotlib
+groq
