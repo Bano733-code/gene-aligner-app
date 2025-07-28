@@ -3,12 +3,10 @@ import pandas as pd
 from alignment.needleman_wunsch import needleman_wunsch
 from alignment.smith_waterman import smith_waterman
 from alignment.dot_matrix import plot_dot_matrix
-from alignment.chatbot import interpret_alignment
 from alignment.word_method import word_alignment
 from Bio import SeqIO
 import io
 import os
-os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"].strip()  # Or use user input field
 
 st.set_page_config(page_title="GeneAligner", layout="wide")
 st.title("🧬 GeneAligner: Bioinformatics Sequence Alignment Tool")
@@ -130,24 +128,7 @@ if st.button("🔍 Align Sequences"):
             df = pd.DataFrame({"Sequence A": a_list, "Sequence B": b_list})
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
-        
-            # 👇 Chatbot-style Interpretation UI
-       
-
-# Set your GROQ_API_KEY once at the top (e.g., via st.secrets or user input in Colab)
-
-# Chatbot Section
-            with st.expander("💬 Ask AI About the Alignment"):
-                 question = st.text_input("Ask a question about the alignment:")
-
-                 if question:
-                    st.markdown(f"**Question:** {question}")
-                    with st.spinner("AI is thinking..."):
-                        explanation = interpret_alignment(method, score, identity, align1, align2, question)
-                        st.markdown("🧠 **AI Response:**")
-                        st.info(explanation)
-
-
+ 
 
 
                  
