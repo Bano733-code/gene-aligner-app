@@ -7,6 +7,11 @@ from alignment.word_method import word_alignment
 from Bio import SeqIO
 import io
 import os
+import re
+
+def clean_dna_sequence(seq):
+    cleaned = re.sub(r'[^ATGC]', '', seq.upper())
+    return cleaned
 
 st.set_page_config(page_title="GeneAligner", layout="wide")
 st.title("🧬 GeneAligner: Bioinformatics Sequence Alignment Tool")
@@ -60,9 +65,17 @@ def render_alignment_with_color(seq1, seq2):
     st.markdown(f"<code>{html_seq2}</code>", unsafe_allow_html=True)
 
 # Inputs
-seq1 = read_sequence(uploaded_file1) or st.text_area("Or paste Sequence A", height=150)
-seq2 = read_sequence(uploaded_file2) or st.text_area("Or paste Sequence B", height=150)
+original_seq1 = read_sequence(uploaded_file1) or st.text_area("Or paste Sequence A", height=150)
+original_seq2 = read_sequence(uploaded_file2) or st.text_area("Or paste Sequence B", height=150)
+seq1 = clean_dna_sequence(original_seq1)
+seq2 = clean_dna_sequence(original_seq2)
 
+# Warn if cleaning was needed
+if original_seq1 != seq1:
+    st.warning("⚠️ Invalid characters removed from Sequence A. Only A, T, G, and C are allowed.")
+
+if original_seq2 != seq2:
+    st.warning("⚠️ Invalid characters removed from Sequence B. Only A, T, G, and C are allowed.")
 method = st.selectbox("🔧 Choose Alignment Method", 
                       ["Dot Matrix", "Needleman-Wunsch", "Smith-Waterman", "Word Method"])
 
@@ -75,7 +88,7 @@ if st.button("🔍 Align Sequences"):
             plot_dot_matrix(seq1, seq2)
             align1, align2, score, identity = seq1, seq2, "N/A", "N/A"
             
-    #else:
+    #else: 
      #   align1 = align2 = ""
         if method == "Needleman-Wunsch":
             score, align1, align2, matrix,match_line,identity = needleman_wunsch(seq1, seq2)
@@ -128,7 +141,6 @@ if st.button("🔍 Align Sequences"):
             df = pd.DataFrame({"Sequence A": a_list, "Sequence B": b_list})
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
- 
+        
+            
 
-
-                 
