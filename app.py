@@ -64,6 +64,11 @@ def render_alignment_with_color(seq1, seq2):
     st.markdown(f"<code>{html_seq1}</code>", unsafe_allow_html=True)
     st.markdown(f"<code>{html_seq2}</code>", unsafe_allow_html=True)
 
+from groq import Groq
+
+# Initialize Groq Client
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
 # Inputs
 original_seq1 = read_sequence(uploaded_file1) or st.text_area("Or paste Sequence A", height=150)
 original_seq2 = read_sequence(uploaded_file2) or st.text_area("Or paste Sequence B", height=150)
@@ -142,5 +147,18 @@ if st.button("🔍 Align Sequences"):
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("📥 Download Alignment as CSV", csv, "alignment_result.csv", "text/csv")
         
-            
 
+st.sidebar.header("💬 Bioinformatics Chatbot")
+user_question = st.sidebar.text_area("Ask me anything about alignments")
+if st.sidebar.button("Send"):
+    if user_question.strip():
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": user_question}],
+        )
+        st.sidebar.write("**Bot:**", response.choices[0].message.content)
+
+
+
+
+                 
