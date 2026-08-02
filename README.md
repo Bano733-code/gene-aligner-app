@@ -67,7 +67,7 @@
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/gene-aligner-app.git
+git clone https://github.com/Bano733-code/gene-aligner-app.git
 cd gene-aligner-app
 ```
 
