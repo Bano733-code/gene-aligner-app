@@ -57,9 +57,8 @@
 ## Visual Result
 
 <p align="center">
-  <img src="figures/DotMatrix.png" alt="Sequence Input Screen" width="45%"/><br/>
+  <img src="figures/DotMatrix.png" alt="Alignment Result" width="45%"/><br/>
   <img src="figures/SMITH_waterman.png" alt="Alignment Result Screen" width="45%"/>
-
 </p>
 
 ---
