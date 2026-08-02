@@ -8,7 +8,7 @@ GeneAligner is a beginner-friendly bioinformatics web app built with **Streamlit
 - 🔹 Needleman-Wunsch (Global Alignment)
 - 🔹 Smith-Waterman (Local Alignment)
 - 🔹 Word Method
-
+ 
 ---
 
 ## 🚀 Features
