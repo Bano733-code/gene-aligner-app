@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/banner.png" alt="GeneAligner Banner" width="800"/>
-</p>
-
 <h1 align="center">🧬 GeneAligner</h1>
 <p align="center"><b>Interactive Sequence Alignment Tool for DNA & RNA</b></p>
 
@@ -32,9 +28,9 @@
 ## 📸 Preview
 
 <p align="center">
-  <img src="assets/gene_dashboard.png" alt="Sequence Input Screen" width="45%"/>
+  <img src="figures/gene_dashboard.png" alt="Sequence Input Screen" width="45%"/>
   &nbsp;&nbsp;
-  <img src="assets/Dot_matrix.png" alt="Alignment Result Screen" width="45%"/>
+  <img src="figures/Dot_matrix.png" alt="Alignment Result Screen" width="45%"/>
 </p>
 <p align="center"><sub>Left: Sequence input & validation &nbsp;|&nbsp; Right: Alignment result & scoring matrix</sub></p>
 
@@ -101,7 +97,7 @@ The app will open automatically in your browser at `http://localhost:8501`.
 
 ```
 gene-aligner-app/
-├── assets/                  # Images used in README and app
+├── figures/                  # Images used in README and app
 ├── app.py                   # Main Streamlit application
 ├── alignment/                # Alignment algorithm modules
 │   ├── dot_matrix.py
