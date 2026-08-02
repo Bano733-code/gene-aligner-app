@@ -4,7 +4,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.9+-blue.svg" alt="Python Version"/>
   <img src="https://img.shields.io/badge/Streamlit-App-red.svg" alt="Streamlit"/>
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/> 
   <img src="https://img.shields.io/badge/Made%20for-Education-orange.svg" alt="Educational Use"/>
 </p>
 
