@@ -30,10 +30,9 @@
 <p align="center">
   <img src="figures/gene_dashboard.png" alt="Sequence Input Screen" width="45%"/>
   &nbsp;&nbsp;
-  <img src="figures/Dot_matrix.png" alt="Alignment Result Screen" width="45%"/>
+  <img src="figures/type_sequences.png" alt="Alignment Result Screen" width="45%"/>
 </p>
-<p align="center"><sub>Left: Sequence input & validation &nbsp;|&nbsp; Right: Alignment result & scoring matrix</sub></p>
-
+<p align="center"><sub>Left: Sequence upload &nbsp;|&nbsp; Right: Sequence Input</sub></p>
 ---
 
 ## 🚀 Features
@@ -52,6 +51,19 @@
 - 🧪 Practicing global vs. local alignment
 - 👩‍🏫 Classroom demos for biology students
 - 💻 Hands-on project for beginners in bioinformatics
+
+---
+
+## Visual Result
+
+<p align="center">
+  <img src="figures/DotMatrix.png" alt="Sequence Input Screen" width="45%"/>
+  &nbsp;&nbsp;
+  <img src="figures/SMITH_waterman.png" alt="Alignment Result Screen" width="45%"/>
+  <img src="figures/NEEDLEMAN_Wanch.png" alt="Alignment Result Screen" width="45%"/>
+  <img src="figures/Word method.png" alt="Alignment Result Screen" width="45%"/>
+
+</p>
 
 ---
 
