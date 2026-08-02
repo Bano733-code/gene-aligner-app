@@ -30,7 +30,7 @@
 <p align="center">
   <img src="figures/gene_dashboard.png" alt="Sequence Input Screen" width="45%"/>
   &nbsp;&nbsp;
-  <img src="figures/type_sequences.png" alt="Alignment Result Screen" width="45%"/>
+  <img src="figures/type_sequences.png" alt="Alignment Result Screen" height="47%" width="45%"/>
 </p>
 <p align="center"><sub>Left: Sequence upload &nbsp;|&nbsp; Right: Sequence Input</sub></p>
 ---
