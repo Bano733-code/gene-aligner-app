@@ -32,7 +32,6 @@
   &nbsp;&nbsp;
   <img src="figures/type_sequences.png" alt="Alignment Result Screen" width="45%" height="57%"/>
 </p>
-<p align="center"><sub>Left: Sequence upload &nbsp;|&nbsp; Right: Sequence Input</sub></p>
 
 ---
 
@@ -61,7 +60,7 @@
   <img src="figures/DotMatrix.png" alt="Sequence Input Screen" width="45%"/>
   &nbsp;&nbsp;
   <img src="figures/SMITH_waterman.png" alt="Alignment Result Screen" width="45%"/>
-  <img src="figures/NEEDLEMAN_Wanch.png" alt="Alignment Result Screen" width="45%"/>
+  <img src="figures/NEEDLEMAN and Wanch.png" alt="Alignment Result Screen" width="45%"/>
   <img src="figures/Word method.png" alt="Alignment Result Screen" width="45%"/>
 
 </p>
