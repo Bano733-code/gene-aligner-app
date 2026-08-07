@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Streamlit-App-red.svg" alt="Streamlit"/>
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/> 
   <img src="https://img.shields.io/badge/Made%20for-Education-orange.svg" alt="Educational Use"/>
-</p>
+</p> 
 
 <p align="center"><i>Created by Bano Rani — for educational purposes</i></p>
 
